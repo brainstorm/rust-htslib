@@ -31,7 +31,20 @@ fn sed_htslib_makefile(out: &PathBuf, patterns: &Vec<&str>, feature: &str) {
     }
 }
 
+fn check_homebrew_osx() {
+    let htslib_deps = vec!("bzip2", "zlib", "xz", "curl-openssl");
+    for dep in htslib_deps {
+        let cmd = Command::new("brew")
+                            .arg("--prefix")
+                            .arg(dep)
+                            .output().expect("Uh-oh, you are not on OSX");
+
+        dbg!(cmd);
+    }
+}
+
 fn main() {
+    check_homebrew_osx();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let mut cfg = cc::Build::new();
     cfg.warnings(false).static_flag(true).pic(true);
@@ -76,10 +89,8 @@ fn main() {
     let cc_cflags = cflags_env.to_string_lossy().replace("-O0", "");
     if Command::new("make")
         .current_dir(out.join("htslib"))
-        //.arg("CC=musl-gcc")
-        .arg(format!("CFLAGS=-D_XOPEN_SOURCE=600 -D_GNU_SOURCE -I/usr/include/x86_64-linux-musl -std=c99 {}", cc_cflags))
         .arg(format!("CC={}", cc_path.display()))
-        .arg(format!("CFLAGS=-D_XOPEN_SOURCE=600 -D_GNU_SOURCE -I/usr/include -I/usr/include/x86_64-linux-gnu -std=c99 {}", cc_cflags))
+        .arg(format!("CFLAGS={}", cc_cflags))
         .arg("lib-static")
         .arg("-B")
         .status()
