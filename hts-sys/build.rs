@@ -100,7 +100,12 @@ fn main() {
         .current_dir(out.join("htslib"))
         .env("CFLAGS", &cc_cflags)
         .arg(format!("--host={}", &host))
-        .status().unwrap().success()
+        .arg("--enable-libcurl")
+        .arg("--enable-s3")
+        .arg("--enable-gcs")
+        .status()
+        .unwrap()
+        .success()
     {
         panic!("could not configure htslib nor any of its plugins")
     }
